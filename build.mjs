@@ -18,9 +18,10 @@
  */
 
 import { readdir, readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
-const ROOT = path.dirname(new URL(import.meta.url).pathname);
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.join(ROOT, '_site');
 const CHECK_ONLY = process.argv.includes('--check');
 
@@ -115,18 +116,18 @@ function lint(fragment, relPath, image, problems) {
 	const say = (msg) => problems.push(`${relPath}: ${msg}`);
 
 	// garde-fou copier-coller : la fiche doit pointer sur SON média
-	const src = fragment.match(/<img\b[^>]*\bsrc\s*=\s*["']([^"']*)["']/i);
+	const src = fragment.match(/<(?:img|video|source)\b[^>]*\bsrc\s*=\s*["']([^"']*)["']/i);
 	if (src && path.posix.basename(src[1]) !== image) {
 		say(`pointe sur ${src[1]} au lieu de ${image} (copier-coller ?)`);
 	}
 
 	if (!/<figure\b/i.test(fragment)) say('aucun <figure> trouvé');
 	if (!/class\s*=\s*["'][^"']*\bspecimen\b/i.test(fragment)) say('le <figure> devrait avoir class="specimen"');
-	if (!/<img\b/i.test(fragment)) say('aucune <img> trouvée');
-	if (/<img\b[^>]*\balt\s*=/i.test(fragment) === false) say('l\'<img> n\'a pas d\'attribut alt');
+	if (!/<(?:img|video)\b/i.test(fragment)) say('aucune <img> ni <video> trouvée');
+	else if (/<img\b/i.test(fragment) && !/<img\b[^>]*\balt\s*=/i.test(fragment)) say('l\'<img> n\'a pas d\'attribut alt');
 
 	const figures = (fragment.match(/<figure\b/gi) || []).length;
-	if (figures > 1) say(`${figures} <figure> dans une seule fiche (1 fiche = 1 outil)`);
+	if (figures > 1) say(`${figures} <figure> dans une seule fiche (1 fiche = 1 spécimen)`);
 
 	for (const field of ['title', 'link', 'creator']) {
 		const re = new RegExp(`class\\s*=\\s*["'][^"']*\\b${field}\\b[^"']*["'][^>]*>\\s*([\\s\\S]*?)</p>`, 'i');
