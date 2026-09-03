@@ -2,8 +2,13 @@
 /**
  * build.mjs — assemble index.html depuis les fiches tools/**\/*.snippet.html
  *
- * Chaque élève ne touche QUE son dossier tools/<son-outil>/.
- * Ce script collecte toutes les fiches et les injecte entre les marqueurs
+ * Un dossier tools/<outil>/ par outil, partagé par toute la classe.
+ * Un spécimen = deux fichiers de MÊME NOM dans ce dossier :
+ *     ID460_PrenomNom_TestPage_<outil>.png
+ *     ID460_PrenomNom_TestPage_<outil>.snippet.html
+ * Une fiche sans image du même nom (ou l'inverse) est ignorée.
+ *
+ * Ce script collecte les spécimens et les injecte entre les marqueurs
  * BUILD:GALLERY de index.html, puis écrit le site dans _site/.
  *
  * Usage:  node build.mjs            (écrit _site/)
@@ -23,15 +28,49 @@ const END = '<!-- /BUILD:GALLERY -->';
 /* ------------------------------------------------------------------ */
 /* 1. trouver toutes les fiches                                        */
 
-async function findSnippets(dir) {
-	const found = [];
-	for (const entry of await readdir(dir, { withFileTypes: true })) {
-		if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
-		const full = path.join(dir, entry.name);
-		if (entry.isDirectory()) found.push(...await findSnippets(full));
-		else if (entry.name.endsWith('.snippet.html')) found.push(full);
+const MEDIA = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg', '.mp4', '.webm'];
+const SUFFIX = '.snippet.html';
+
+/**
+ * Renvoie { pairs, orphans } :
+ *  - pairs   : fiches ayant un média du même nom dans le même dossier
+ *  - orphans : fiches sans média, et médias sans fiche (ignorés)
+ */
+async function findSpecimens(dir) {
+	const pairs = [];
+	const orphans = [];
+
+	const entries = await readdir(dir, { withFileTypes: true });
+	const files = entries.filter((e) => e.isFile() && !e.name.startsWith('.'));
+
+	// index des médias du dossier, par nom sans extension
+	const media = new Map();
+	for (const f of files) {
+		const ext = path.extname(f.name).toLowerCase();
+		if (MEDIA.includes(ext)) media.set(f.name.slice(0, -ext.length), f.name);
 	}
-	return found;
+
+	for (const f of files) {
+		if (!f.name.endsWith(SUFFIX)) continue;
+		const stem = f.name.slice(0, -SUFFIX.length);
+		const image = media.get(stem);
+		if (image) { pairs.push({ file: path.join(dir, f.name), stem, image }); media.delete(stem); }
+		else orphans.push(`${path.join(dir, f.name)} : aucun média nommé ${stem}.<ext> — fiche ignorée`);
+	}
+
+	// médias restants = pas de fiche
+	for (const [stem, name] of media) {
+		orphans.push(`${path.join(dir, name)} : aucune fiche ${stem}${SUFFIX} — image ignorée`);
+	}
+
+	for (const e of entries) {
+		if (e.isDirectory() && !e.name.startsWith('.') && e.name !== 'node_modules') {
+			const sub = await findSpecimens(path.join(dir, e.name));
+			pairs.push(...sub.pairs);
+			orphans.push(...sub.orphans);
+		}
+	}
+	return { pairs, orphans };
 }
 
 /* ------------------------------------------------------------------ */
@@ -70,8 +109,14 @@ function rewritePaths(html, dirFromRoot) {
 /* ------------------------------------------------------------------ */
 /* 4. petites vérifications, pour aider les élèves                     */
 
-function lint(fragment, relPath, problems) {
+function lint(fragment, relPath, image, problems) {
 	const say = (msg) => problems.push(`${relPath}: ${msg}`);
+
+	// garde-fou copier-coller : la fiche doit pointer sur SON média
+	const src = fragment.match(/<img\b[^>]*\bsrc\s*=\s*["']([^"']*)["']/i);
+	if (src && path.posix.basename(src[1]) !== image) {
+		say(`pointe sur ${src[1]} au lieu de ${image} (copier-coller ?)`);
+	}
 
 	if (!/<figure\b/i.test(fragment)) say('aucun <figure> trouvé');
 	if (!/class\s*=\s*["'][^"']*\bspecimen\b/i.test(fragment)) say('le <figure> devrait avoir class="specimen"');
@@ -100,17 +145,19 @@ async function pruneDotfiles(dir) {
 	}
 }
 
-const snippets = (await findSnippets(path.join(ROOT, 'tools'))).sort();
+const { pairs, orphans } = await findSpecimens(path.join(ROOT, 'tools'));
+pairs.sort((a, b) => a.file.localeCompare(b.file));
+
 const problems = [];
 const cards = [];
 
-for (const file of snippets) {
+for (const { file, image } of pairs) {
 	const relFile = path.relative(ROOT, file).split(path.sep).join('/');
 	const relDir = path.posix.dirname(relFile);
 	const fragment = extractFragment(await readFile(file, 'utf8'));
 
 	if (!fragment) { problems.push(`${relFile}: fiche vide`); continue; }
-	lint(fragment, relFile, problems);
+	lint(fragment, relFile, image, problems);
 
 	cards.push(`\n<!-- ${relFile} -->\n${rewritePaths(fragment, relDir)}\n`);
 }
@@ -128,8 +175,12 @@ const output =
 	'\n' + cards.join('\n') + '\n' +
 	template.slice(b);
 
+for (const o of orphans) console.log(`  ·   ${path.relative(ROOT, o)}`);
 for (const p of problems) console.log(`  ⚠︎  ${p}`);
-console.log(`\n${cards.length} fiche(s) intégrée(s), ${problems.length} avertissement(s).`);
+console.log(
+	`\n${cards.length} spécimen(s) intégré(s), ` +
+	`${orphans.length} fichier(s) ignoré(s), ${problems.length} avertissement(s).`
+);
 
 if (CHECK_ONLY) process.exit(0);
 

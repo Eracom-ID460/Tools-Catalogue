@@ -8,16 +8,37 @@ dossier, donc **aucun conflit Git possible**.
 
 ---
 
-## Ajouter un outil
+## Ajouter un spécimen
 
-1. Créer un dossier `tools/nom-de-loutil/`
+Un **dossier par outil**, partagé par toute la classe. Chaque personne y dépose
+autant de spécimens qu'elle veut.
+
+Un spécimen = **deux fichiers de même nom** dans le dossier de l'outil :
+
+```
+tools/enfont-terrible.com/
+	ID460_AndriiBlyshchyk_TestPage_enfont-terrible.com.png
+	ID460_AndriiBlyshchyk_TestPage_enfont-terrible.com.snippet.html
+	ID460_MarieDupont_TestPage_enfont-terrible.com.png
+	ID460_MarieDupont_TestPage_enfont-terrible.com.snippet.html
+```
+
+C'est le nom qui fait le lien : `.png` d'un côté, `.snippet.html` de l'autre.
+**Un fichier sans son jumeau est simplement ignoré** — rien ne casse, le
+spécimen n'apparaît pas.
+
+Pour plusieurs essais avec le même outil, numéroter la paire :
+`…_enfont-terrible.com_2.png` + `…_enfont-terrible.com_2.snippet.html`.
+
+### Marche à suivre
+
+1. Trouver — ou créer — le dossier de l'outil : `tools/nom-de-loutil/`
    (minuscules, sans espaces ni accents — p.ex. `tools/paint.stx.studio/`)
 
-2. Y déposer la capture d'écran, nommée
-   `ID460_PrenomNom_TestPage_nom-de-loutil.png`
+2. Y déposer la capture, nommée `ID460_PrenomNom_TestPage_nom-de-loutil.png`
 
-3. Y copier `MODELE.snippet.html` en le renommant
-   `tools/nom-de-loutil/nom-de-loutil.snippet.html`, puis remplir les champs :
+3. Y copier `MODELE.snippet.html`, renommé **exactement comme l'image** :
+   `ID460_PrenomNom_TestPage_nom-de-loutil.snippet.html`, puis remplir :
 
    ```html
    <figure class="specimen">
@@ -35,14 +56,14 @@ dossier, donc **aucun conflit Git possible**.
 
 4. Commit + push sur `main`. Une minute plus tard la galerie est en ligne.
 
-> Une fiche = un outil. Pour un deuxième outil, un deuxième dossier.
-
----
+> En copiant la fiche d'un·e camarade, ne pas oublier de changer le `<img src>` :
+> le build prévient si une fiche pointe sur l'image de quelqu'un d'autre.
 
 ## Règles pour ne pas se marcher dessus
 
 - **Ne pas modifier `index.html`, `style.css` ni `build.mjs`** (ils appartiennent à tout le monde).
-- Rester dans son dossier `tools/…/`.
+- Rester sur ses propres fichiers : ceux qui portent son nom.
+- Ne jamais renommer ni modifier les fichiers d'un·e autre.
 - Avant de pousser, toujours :
 
   ```sh
@@ -77,13 +98,17 @@ tourne sur chaque pull request.
 
 | Fichier | Rôle |
 |---|---|
-| `tools/*/*.snippet.html` | une fiche par outil (la seule chose que les élèves éditent) |
+| `tools/<outil>/<nom>.png` | la capture d'écran d'un spécimen |
+| `tools/<outil>/<nom>.snippet.html` | sa fiche — même nom que l'image (la seule chose que les élèves éditent) |
 | `index.html` | gabarit ; le contenu entre `<!-- BUILD:GALLERY -->` et `<!-- /BUILD:GALLERY -->` est remplacé |
 | `build.mjs` | collecte les fiches, réécrit les chemins d'images, assemble `_site/` |
 | `.github/workflows/deploy.yml` | rejoue le build à chaque push sur `main` et publie sur GitHub Pages |
 
-Le build extrait le contenu du `<body>` de chaque fiche et préfixe les chemins
-relatifs par le dossier de la fiche (`mon-image.png` → `tools/mon-outil/mon-image.png`).
+Le build apparie chaque fiche avec le média de même nom dans son dossier
+(`.png`, `.jpg`, `.gif`, `.webp`, `.svg`, `.mp4`…), extrait le contenu du
+`<body>` de la fiche, puis préfixe les chemins relatifs par le dossier
+(`mon-image.png` → `tools/mon-outil/mon-image.png`). Les fichiers non appariés
+sont listés au build et ignorés.
 L'ordre d'affichage est mélangé aléatoirement à chaque chargement de page.
 
 ---
