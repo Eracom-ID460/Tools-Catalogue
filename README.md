@@ -2,9 +2,13 @@
 
 Galerie d'outils numériques — <https://eracom-id460.github.io/Tools-Catalogue/>
 
-`index.html` n'est **jamais** édité à la main : il est assemblé automatiquement
-à partir d'une fiche par outil. Chaque personne ne touche que son propre
-dossier, donc **aucun conflit Git possible**.
+`index.html` n'est **jamais** édité à la main : il est réassemblé
+automatiquement à partir des fiches à chaque push. C'est un fichier statique
+complet — il s'ouvre, se copie sur une clé USB ou se met sur n'importe quel
+serveur sans rien exécuter — mais **tout ce qu'on y écrit à la main entre les
+marqueurs `BUILD:GALLERY` sera écrasé au prochain build**.
+
+Chaque personne ne touche que ses propres fichiers, donc **aucun conflit Git**.
 
 ---
 
@@ -61,7 +65,8 @@ Pour plusieurs essais avec le même outil, numéroter la paire :
 
 ## Règles pour ne pas se marcher dessus
 
-- **Ne pas modifier `index.html`, `style.css` ni `build.mjs`** (ils appartiennent à tout le monde).
+- **Ne pas modifier ni commiter `index.html`** : il est regénéré à chaque push.
+- **Ne pas modifier `style.css` ni `build.mjs`** (ils appartiennent à tout le monde).
 - Rester sur ses propres fichiers : ceux qui portent son nom.
 - Ne jamais renommer ni modifier les fichiers d'un·e autre.
 - Avant de pousser, toujours :
@@ -82,15 +87,26 @@ toujours sans conflit.
 
 ---
 
-## Prévisualiser en local
+## Prévisualiser
+
+**Pas besoin d'installer quoi que ce soit** : double-cliquer sa propre fiche
+`.snippet.html` l'ouvre dans le navigateur, déjà mise en forme. C'est la façon
+normale de vérifier son travail avant de pousser.
+
+Pour reconstruire la galerie entière en local (optionnel, demande Node) :
 
 ```sh
-node build.mjs      # écrit _site/
-open _site/index.html
+node build.mjs        # réécrit index.html + une copie dans _site/
+node build.mjs --check  # valide les fiches sans rien écrire
 ```
 
-`node build.mjs --check` valide les fiches sans rien écrire — c'est ce qui
-tourne sur chaque pull request.
+⚠︎ `node build.mjs` modifie `index.html`. Ne pas commiter ce fichier : c'est
+le robot qui s'en charge sur `main`. En cas de conflit sur `index.html` :
+
+```sh
+git checkout --theirs index.html   # garder la version du dépôt
+git add index.html
+```
 
 ---
 
@@ -100,9 +116,9 @@ tourne sur chaque pull request.
 |---|---|
 | `tools/<outil>/<nom>.png` | la capture d'écran d'un spécimen |
 | `tools/<outil>/<nom>.snippet.html` | sa fiche — même nom que l'image (la seule chose que les élèves éditent) |
-| `index.html` | gabarit ; le contenu entre `<!-- BUILD:GALLERY -->` et `<!-- /BUILD:GALLERY -->` est remplacé |
-| `build.mjs` | collecte les fiches, réécrit les chemins d'images, assemble `_site/` |
-| `.github/workflows/deploy.yml` | rejoue le build à chaque push sur `main` et publie sur GitHub Pages |
+| `index.html` | page statique **générée** ; le contenu entre `<!-- BUILD:GALLERY -->` et `<!-- /BUILD:GALLERY -->` est remplacé à chaque build |
+| `build.mjs` | collecte les fiches, réécrit les chemins d'images, réécrit `index.html` sur place |
+| `.github/workflows/deploy.yml` | rejoue le build à chaque push sur `main`, renvoie `index.html` sur `main`, publie sur GitHub Pages |
 
 Le build apparie chaque fiche avec le média de même nom dans son dossier
 (`.png`, `.jpg`, `.gif`, `.webp`, `.svg`, `.mp4`…), extrait le contenu du

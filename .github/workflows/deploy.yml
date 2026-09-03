@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # pour réécrire index.html
   pages: write
   id-token: write
 
@@ -24,8 +24,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: Assembler index.html depuis les fiches
         run: node build.mjs
+
+      # index.html est réécrit sur place : on le renvoie sur main pour que la
+      # page reste une page statique complète, utilisable hors de Git.
+      # (Un push fait avec GITHUB_TOKEN ne redéclenche pas ce workflow.)
+      - name: Publier index.html sur main
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "index.html inchangé"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Regénérer index.html [skip ci]"
+          # quelqu'un a pu pousser entre-temps
+          git pull --rebase --autostash
+          git push
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

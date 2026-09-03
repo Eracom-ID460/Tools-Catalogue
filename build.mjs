@@ -9,10 +9,12 @@
  * Une fiche sans image du même nom (ou l'inverse) est ignorée.
  *
  * Ce script collecte les spécimens et les injecte entre les marqueurs
- * BUILD:GALLERY de index.html, puis écrit le site dans _site/.
+ * BUILD:GALLERY de index.html — RÉÉCRIT SUR PLACE. index.html reste donc
+ * une page statique complète : elle s'ouvre et se partage sans rien exécuter.
+ * Tout ce qui est écrit à la main entre les marqueurs sera écrasé.
  *
- * Usage:  node build.mjs            (écrit _site/)
- *         node build.mjs --check    (ne fait que valider, sortie non nulle si erreur)
+ * Usage:  node build.mjs            (réécrit index.html + copie _site/)
+ *         node build.mjs --check    (ne fait que valider, n'écrit rien)
  */
 
 import { readdir, readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
@@ -184,6 +186,15 @@ console.log(
 
 if (CHECK_ONLY) process.exit(0);
 
+// 1. index.html sur place : la page reste utilisable hors de Git
+if (output !== template) {
+	await writeFile(path.join(ROOT, 'index.html'), output);
+	console.log('index.html mis à jour');
+} else {
+	console.log('index.html déjà à jour');
+}
+
+// 2. copie propre pour la publication (sans .git, .github, README…)
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
 await writeFile(path.join(OUT, 'index.html'), output);
@@ -191,4 +202,4 @@ await cp(path.join(ROOT, 'style.css'), path.join(OUT, 'style.css'));
 await cp(path.join(ROOT, 'tools'), path.join(OUT, 'tools'), { recursive: true });
 await pruneDotfiles(path.join(OUT, 'tools'));
 
-console.log(`Site écrit dans _site/`);
+console.log('Copie de publication écrite dans _site/');
