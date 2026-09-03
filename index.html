@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Test Page</title>
+	<link rel="stylesheet" href="style.css">
+
+	<script>
+		document.addEventListener('DOMContentLoaded', () => {
+			const gallery = document.querySelector('.gallery');
+			const children = Array.from(gallery.children);
+			for (let i = children.length - 1; i > 0; i--) {
+				const j = Math.floor(Math.random() * (i + 1));
+				[children[i], children[j]] = [children[j], children[i]];
+			}
+			children.forEach(child => gallery.appendChild(child));
+		});
+	</script>
+</head>
+<body>
+
+<header>
+	<h1>Digital Tools experiments</h1>
+</header>
+
+<main>
+<section class="gallery">
+
+
+
+
+<figure class="specimen">
+	<img src="tools/fohnef.xyz/ID460_Jean-Nemar_TestPage_fonef.xyz_001neg.png" alt="">
+	<figcaption>
+		<p class="title">form(en) ohne funktion</p>
+		<p class="link"><a href="https://fohnef.xyz">fohnef.xyz</a></p>
+		<p class="creator">Jean Némar</p>
+	</figcaption>
+</figure>
+
+
+
+
+<figure class="specimen">
+	<img src="tools/sample/image.png" alt="">
+	<figcaption>
+		<p class="title">Sample</p>
+		<p class="link"><a href="https://eracom.ch">eracom.ch</a></p>
+		<p class="creator">Prenom Nomdefamille</p>
+	</figcaption>
+</figure>
+
+
+
+
+<figure class="specimen">
+	<img src="tools/sample/image.png" alt="">
+	<figcaption>
+		<p class="title">Sample</p>
+		<p class="link"><a href="https://eracom.ch">eracom.ch</a></p>
+		<p class="creator">Prenom Nomdefamille</p>
+	</figcaption>
+</figure>
+
+
+
+
+<figure class="specimen">
+	<img src="tools/sample/image.png" alt="">
+	<figcaption>
+		<p class="title">Sample</p>
+		<p class="link"><a href="https://eracom.ch">eracom.ch</a></p>
+		<p class="creator">Prenom Nomdefamille</p>
+	</figcaption>
+</figure>
+
+
+
+
+<figure class="specimen">
+	<img src="tools/sample/image.png" alt="">
+	<figcaption>
+		<p class="title">Sample</p>
+		<p class="link"><a href="https://eracom.ch">eracom.ch</a></p>
+		<p class="creator">Prenom Nomdefamille</p>
+	</figcaption>
+</figure>
+
+
+
+
+</section><!-- / .gallery -->
+</main>
+
+</body>
+</html>
