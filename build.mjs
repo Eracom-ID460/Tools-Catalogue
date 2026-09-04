@@ -46,24 +46,50 @@ async function findSpecimens(dir) {
 	const entries = await readdir(dir, { withFileTypes: true });
 	const files = entries.filter((e) => e.isFile() && !e.name.startsWith('.'));
 
-	// index des médias du dossier, par nom sans extension
+	// index des médias du dossier, par nom sans extension.
+	// Un même nom peut exister en plusieurs formats (une capture .png et
+	// son animation .gif) : on les garde tous, la fiche tranchera.
 	const media = new Map();
 	for (const f of files) {
 		const ext = path.extname(f.name).toLowerCase();
-		if (MEDIA.includes(ext)) media.set(f.name.slice(0, -ext.length), f.name);
+		if (!MEDIA.includes(ext)) continue;
+		const stem = f.name.slice(0, -ext.length);
+		if (!media.has(stem)) media.set(stem, []);
+		media.get(stem).push(f.name);
 	}
+	for (const names of media.values()) names.sort();
 
 	for (const f of files) {
 		if (!f.name.endsWith(SUFFIX)) continue;
+		const file = path.join(dir, f.name);
 		const stem = f.name.slice(0, -SUFFIX.length);
-		const image = media.get(stem);
-		if (image) { pairs.push({ file: path.join(dir, f.name), stem, image }); media.delete(stem); }
-		else orphans.push(`${path.join(dir, f.name)} : aucun média nommé ${stem}.<ext> — fiche ignorée`);
+		const candidates = media.get(stem);
+
+		if (!candidates) {
+			orphans.push(`${file} : aucun média nommé ${stem}.<ext> — fiche ignorée`);
+			continue;
+		}
+
+		// plusieurs formats : celui que la fiche référence l'emporte
+		let image = candidates[0];
+		let ambiguous = null;
+		if (candidates.length > 1) {
+			const html = await readFile(file, 'utf8');
+			const ref = html.match(/<(?:img|video|source)\b[^>]*\bsrc\s*=\s*["']([^"']*)["']/i);
+			const wanted = ref && path.posix.basename(ref[1]);
+			if (wanted && candidates.includes(wanted)) image = wanted;
+			else ambiguous = candidates;
+		}
+
+		pairs.push({ file, stem, image, ambiguous });
+		media.delete(stem);
 	}
 
 	// médias restants = pas de fiche
-	for (const [stem, name] of media) {
-		orphans.push(`${path.join(dir, name)} : aucune fiche ${stem}${SUFFIX} — image ignorée`);
+	for (const [stem, names] of media) {
+		for (const name of names) {
+			orphans.push(`${path.join(dir, name)} : aucune fiche ${stem}${SUFFIX} — image ignorée`);
+		}
 	}
 
 	for (const e of entries) {
@@ -154,12 +180,15 @@ pairs.sort((a, b) => a.file.localeCompare(b.file));
 const problems = [];
 const cards = [];
 
-for (const { file, image } of pairs) {
+for (const { file, image, ambiguous } of pairs) {
 	const relFile = path.relative(ROOT, file).split(path.sep).join('/');
 	const relDir = path.posix.dirname(relFile);
 	const fragment = extractFragment(await readFile(file, 'utf8'));
 
 	if (!fragment) { problems.push(`${relFile}: fiche vide`); continue; }
+	if (ambiguous) {
+		problems.push(`${relFile}: plusieurs médias possibles (${ambiguous.join(', ')}) — ${image} retenu, préciser lequel dans le src`);
+	}
 	lint(fragment, relFile, image, problems);
 
 	cards.push(`\n<!-- ${relFile} -->\n${rewritePaths(fragment, relDir)}\n`);
