@@ -93,6 +93,16 @@ Pour une vidéo, remplacer l'`<img>` par une `<video src="…" autoplay loop mut
   git config --global pull.rebase true
   ```
 
+- **macOS : ne jamais commiter de `.DS_Store`.** Ce fichier caché est créé par
+  le Finder dans chaque dossier ; il n'a rien à faire dans le dépôt. Il est déjà
+  dans le `.gitignore` d'ici, mais autant le bloquer partout, une fois pour
+  toutes :
+
+  ```sh
+  git config --global core.excludesfile ~/.gitignore_global
+  echo .DS_Store >> ~/.gitignore_global
+  ```
+
 Comme personne ne modifie les mêmes fichiers, `git pull --rebase` passe
 toujours sans conflit.
 
