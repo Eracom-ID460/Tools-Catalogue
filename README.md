@@ -82,6 +82,12 @@ Pour une vidéo, remplacer l'`<img>` par une `<video src="…" autoplay loop mut
   ni supprimer ceux d'un·e autre.
 - Avant chaque push : **GitHub Desktop** → **Menu** → **Repository** → **Pull**
 
+### ⚠️ En cas de panne (conflit)
+
+1. **GitHub Desktop** → **Menu** → **Repository** → **Open in Terminal**
+2. `git pull --rebase`
+
+
 <!--
   ```sh
   git pull --rebase
