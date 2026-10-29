@@ -18,10 +18,10 @@ Un spécimen = **deux fichiers de même nom** dans le dossier de l'outil :
 
 ```
 tools/enfont-terrible.com/
-	ID460_AndriiBlyshchyk_TestPage_enfont-terrible.com.png
-	ID460_AndriiBlyshchyk_TestPage_enfont-terrible.com.snippet.html
-	ID460_MarieDupont_TestPage_enfont-terrible.com.png
-	ID460_MarieDupont_TestPage_enfont-terrible.com.snippet.html
+	ID460_PrenomNomdeFamille_TestPage_nom-de-loutil.png
+	ID460_PrenomNomdeFamille_TestPage_nom-de-loutil.snippet.html
+	ID460_JeanNehmarr_TestPage_nom-de-loutil.png
+	ID460_JeanNehmarr_TestPage_nom-de-loutil.snippet.html
 ```
 
 C'est le **nom** qui fait le lien : même nom des deux côtés, `.png` d'un côté,
@@ -29,7 +29,7 @@ C'est le **nom** qui fait le lien : même nom des deux côtés, `.png` d'un côt
 ignoré** — rien ne casse, le spécimen n'apparaît pas dans la galerie.
 
 Pour plusieurs essais avec le même outil, numéroter la paire :
-`…_enfont-terrible.com_2.png` + `…_enfont-terrible.com_2.snippet.html`.
+`…_nom-de-loutil_2.png` + `…_nom-de-loutil_2.snippet.html`.
 
 ### Marche à suivre
 
@@ -80,8 +80,10 @@ Pour une vidéo, remplacer l'`<img>` par une `<video src="…" autoplay loop mut
   appartiennent à tout le monde.
 - Rester sur ses propres fichiers, ceux qui portent son nom. Ne jamais renommer
   ni supprimer ceux d'un·e autre.
-- Avant chaque push :
+- Avant chaque push : **GitHub Desktop** → **Menu** → **Repository** → **Pull**
 
+
+<!--
   ```sh
   git pull --rebase
   git push
@@ -92,6 +94,7 @@ Pour une vidéo, remplacer l'`<img>` par une `<video src="…" autoplay loop mut
   ```sh
   git config --global pull.rebase true
   ```
+
 
 - **macOS : ne jamais commiter de `.DS_Store`.** Ce fichier caché est créé par
   le Finder dans chaque dossier ; il n'a rien à faire dans le dépôt. Il est déjà
@@ -105,6 +108,7 @@ Pour une vidéo, remplacer l'`<img>` par une `<video src="…" autoplay loop mut
 
 Comme personne ne modifie les mêmes fichiers, `git pull --rebase` passe
 toujours sans conflit.
+
 
 ---
 
@@ -131,6 +135,9 @@ node build.mjs --check   # valide les fiches, n'écrit rien
 >
 > Le fichier étant généré, n'importe quelle version fait l'affaire : le
 > prochain build la corrige.
+
+-->
+
 
 ---
 
