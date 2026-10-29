@@ -19,17 +19,21 @@ Un spécimen = **deux fichiers de même nom** dans le dossier de l'outil :
 ```
 tools/enfont-terrible.com/
 	ID460_PrenomNomdeFamille_TestPage_nom-de-loutil.png
-	ID460_PrenomNomdeFamille_TestPage_nom-de-loutil.snippet.html
+	ID460_PrenomNomdeFamille_TestPage_nom-de-loutil.html
 	ID460_JeanNehmarr_TestPage_nom-de-loutil.png
-	ID460_JeanNehmarr_TestPage_nom-de-loutil.snippet.html
+	ID460_JeanNehmarr_TestPage_nom-de-loutil.html
 ```
 
 C'est le **nom** qui fait le lien : même nom des deux côtés, `.png` d'un côté,
-`.snippet.html` de l'autre. **Un fichier sans son jumeau est simplement
+`.html` de l'autre. **Un fichier sans son jumeau est simplement
 ignoré** — rien ne casse, le spécimen n'apparaît pas dans la galerie.
 
+> Les fiches plus anciennes en `….snippet.html` restent valables, inutile de
+> les renommer. S'il y a les deux pour un même nom, c'est le `.snippet.html`
+> qui compte.
+
 Pour plusieurs essais avec le même outil, numéroter la paire :
-`…_nom-de-loutil_2.png` + `…_nom-de-loutil_2.snippet.html`.
+`…_nom-de-loutil_2.png` + `…_nom-de-loutil_2.html`.
 
 ### Marche à suivre
 
@@ -38,8 +42,8 @@ Pour plusieurs essais avec le même outil, numéroter la paire :
 
 2. Y déposer la capture, nommée `ID460_PrenomNom_TestPage_nom-de-loutil.png`
 
-3. Y copier `MODELE.snippet.html`, renommé **exactement comme l'image** :
-   `ID460_PrenomNom_TestPage_nom-de-loutil.snippet.html`, puis remplir :
+3. Y copier `MODELE.html`, renommé **exactement comme l'image** :
+   `ID460_PrenomNom_TestPage_nom-de-loutil.html`, puis remplir :
 
    ```html
    <figure class="specimen">
@@ -55,7 +59,7 @@ Pour plusieurs essais avec le même outil, numéroter la paire :
    Le chemin de l'image est **relatif à la fiche** : juste le nom du fichier,
    sans `tools/…` devant. Le build ajoute le dossier tout seul.
 
-4. **Vérifier** : double-cliquer sa fiche `.snippet.html` — elle s'ouvre dans le
+4. **Vérifier** : double-cliquer sa fiche `.html` — elle s'ouvre dans le
    navigateur, déjà mise en forme.
 
 5. Commit + push sur `main`. Une minute plus tard, la galerie est en ligne.
@@ -76,7 +80,7 @@ Pour une vidéo, remplacer l'`<img>` par une `<video src="…" autoplay loop mut
 
 - **Ne jamais modifier ni commiter `index.html`** : il est regénéré à chaque
   push, toute modification manuelle est écrasée.
-- **Ne pas toucher à `style.css`, `build.mjs`, `MODELE.snippet.html`** : ils
+- **Ne pas toucher à `style.css`, `build.mjs`, `MODELE.html`** : ils
   appartiennent à tout le monde.
 - Rester sur ses propres fichiers, ceux qui portent son nom. Ne jamais renommer
   ni supprimer ceux d'un·e autre.
@@ -115,7 +119,7 @@ toujours sans conflit.
 ## Prévisualiser
 
 **Aucune installation nécessaire** : double-cliquer sa propre fiche
-`.snippet.html` l'ouvre dans le navigateur, déjà mise en forme par `style.css`.
+`.html` l'ouvre dans le navigateur, déjà mise en forme par `style.css`.
 C'est la façon normale de vérifier son travail avant de pousser.
 
 Pour reconstruire la galerie entière en local — optionnel, demande
@@ -146,8 +150,8 @@ node build.mjs --check   # valide les fiches, n'écrit rien
 | Fichier | Rôle |
 |---|---|
 | `tools/<outil>/<nom>.png` | le média d'un spécimen |
-| `tools/<outil>/<nom>.snippet.html` | sa fiche, **même nom** que le média — la seule chose que les élèves éditent |
-| `MODELE.snippet.html` | le modèle à copier (hors de `tools/`, donc jamais publié) |
+| `tools/<outil>/<nom>.html` | sa fiche, **même nom** que le média — la seule chose que les élèves éditent |
+| `MODELE.html` | le modèle à copier (hors de `tools/`, donc jamais publié) |
 | `index.html` | la galerie, **fichier généré** mais versionné |
 | `style.css` | la mise en forme, partagée par la galerie et les fiches |
 | `build.mjs` | le build |
@@ -156,8 +160,9 @@ node build.mjs --check   # valide les fiches, n'écrit rien
 
 ### Le build, étape par étape
 
-1. Parcourt `tools/` et **apparie** chaque `.snippet.html` avec le média de même
-   nom dans le même dossier. Les fichiers non appariés sont listés puis ignorés.
+1. Parcourt `tools/` et **apparie** chaque fiche `.html` avec le
+   média de même nom dans le même dossier. Les fichiers non appariés sont
+   listés puis ignorés.
 2. Pour chaque fiche, garde uniquement le contenu de son `<body>` — le reste du
    document HTML n'existe que pour la prévisualisation.
 3. **Préfixe les chemins relatifs** (`src`, `href`, `poster`) par le dossier de
@@ -178,7 +183,9 @@ mélangé aléatoirement à chaque chargement de la page, par le script en tête
 Purement informatifs — **ils ne bloquent jamais** ni le build ni la
 publication :
 
-- une fiche qui pointe sur le média d'un·e autre (copier-coller) ;
+- une fiche qui pointe sur le média d'un·e autre (copier-coller) ; si le
+  fichier visé n'existe pas (p.ex. le `src` du modèle jamais changé), la
+  galerie affiche quand même le bon média, celui qui porte le nom de la fiche ;
 - pas de `<figure>`, pas de `class="specimen"`, pas d'`<img>` ni de `<video>` ;
 - une `<img>` sans attribut `alt` ;
 - plusieurs `<figure>` dans une même fiche (1 fiche = 1 spécimen) ;
