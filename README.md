@@ -28,6 +28,11 @@ C'est le **nom** qui fait le lien : même nom des deux côtés, `.png` d'un côt
 `.snippet.html` de l'autre. **Un fichier sans son jumeau est simplement
 ignoré** — rien ne casse, le spécimen n'apparaît pas dans la galerie.
 
+> Sur Mac, le Finder cache souvent les extensions : la fiche s'affiche
+> `…snippet` et, en la renommant, on perd `.snippet` sans le voir. Une fiche
+> en `.html` tout court est donc acceptée aussi. S'il y a les deux, c'est le
+> `.snippet.html` qui compte.
+
 Pour plusieurs essais avec le même outil, numéroter la paire :
 `…_nom-de-loutil_2.png` + `…_nom-de-loutil_2.snippet.html`.
 
@@ -156,8 +161,9 @@ node build.mjs --check   # valide les fiches, n'écrit rien
 
 ### Le build, étape par étape
 
-1. Parcourt `tools/` et **apparie** chaque `.snippet.html` avec le média de même
-   nom dans le même dossier. Les fichiers non appariés sont listés puis ignorés.
+1. Parcourt `tools/` et **apparie** chaque `.snippet.html` (ou `.html`) avec le
+   média de même nom dans le même dossier. Les fichiers non appariés sont
+   listés puis ignorés.
 2. Pour chaque fiche, garde uniquement le contenu de son `<body>` — le reste du
    document HTML n'existe que pour la prévisualisation.
 3. **Préfixe les chemins relatifs** (`src`, `href`, `poster`) par le dossier de
@@ -178,7 +184,9 @@ mélangé aléatoirement à chaque chargement de la page, par le script en tête
 Purement informatifs — **ils ne bloquent jamais** ni le build ni la
 publication :
 
-- une fiche qui pointe sur le média d'un·e autre (copier-coller) ;
+- une fiche qui pointe sur le média d'un·e autre (copier-coller) ; si le
+  fichier visé n'existe pas (p.ex. le `src` du modèle jamais changé), la
+  galerie affiche quand même le bon média, celui qui porte le nom de la fiche ;
 - pas de `<figure>`, pas de `class="specimen"`, pas d'`<img>` ni de `<video>` ;
 - une `<img>` sans attribut `alt` ;
 - plusieurs `<figure>` dans une même fiche (1 fiche = 1 spécimen) ;

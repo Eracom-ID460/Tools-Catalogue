@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * build.mjs — assemble index.html depuis les fiches tools/**\/*.snippet.html
+ *              (ou *.html tout court, voir ficheStem)
  *
  * Un dossier tools/<outil>/ par outil, partagé par toute la classe.
  * Un spécimen = deux fichiers de MÊME NOM dans ce dossier :
@@ -18,6 +19,7 @@
  */
 
 import { readdir, readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -33,6 +35,16 @@ const END = '<!-- /BUILD:GALLERY -->';
 
 const MEDIA = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg', '.mp4', '.webm'];
 const SUFFIX = '.snippet.html';
+
+// Tolérance : le Finder masque les extensions et affiche la fiche comme
+// « …snippet » ; en la renommant, l'élève perd « .snippet » sans le voir.
+// Une fiche en .html tout court est donc acceptée aussi.
+function ficheStem(name) {
+	const lower = name.toLowerCase();
+	if (lower.endsWith(SUFFIX)) return name.slice(0, -SUFFIX.length);
+	if (lower.endsWith('.html')) return name.slice(0, -'.html'.length);
+	return null;
+}
 
 /**
  * Renvoie { pairs, orphans } :
@@ -59,12 +71,21 @@ async function findSpecimens(dir) {
 	}
 	for (const names of media.values()) names.sort();
 
-	for (const f of files) {
-		if (!f.name.endsWith(SUFFIX)) continue;
+	// les .snippet.html d'abord : en cas de doublon, ce sont eux qui gagnent
+	const fiches = files
+		.filter((f) => ficheStem(f.name) !== null)
+		.sort((x, y) => Number(!x.name.endsWith(SUFFIX)) - Number(!y.name.endsWith(SUFFIX)));
+	const paired = new Map();
+
+	for (const f of fiches) {
 		const file = path.join(dir, f.name);
-		const stem = f.name.slice(0, -SUFFIX.length);
+		const stem = ficheStem(f.name);
 		const candidates = media.get(stem);
 
+		if (paired.has(stem)) {
+			orphans.push(`${file} : doublon de ${paired.get(stem)} — fiche ignorée`);
+			continue;
+		}
 		if (!candidates) {
 			orphans.push(`${file} : aucun média nommé ${stem}.<ext> — fiche ignorée`);
 			continue;
@@ -82,6 +103,7 @@ async function findSpecimens(dir) {
 		}
 
 		pairs.push({ file, stem, image, ambiguous });
+		paired.set(stem, f.name);
 		media.delete(stem);
 	}
 
@@ -136,7 +158,26 @@ function rewritePaths(html, dirFromRoot) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 4. petites vérifications, pour aider les élèves                     */
+/* 4. src introuvable -> média apparié                                 */
+
+// Fiche pas remplie (src du modèle) ou src mal tapé : plutôt qu'une image
+// cassée dans la galerie, on affiche le média apparié par le nom. Le lint
+// le signale quand même.
+function fixMissingSrc(html, dir, image) {
+	return html.replace(
+		/(<(?:img|video|source)\b[^>]*\bsrc\s*=\s*["'])([^"']*)(["'])/i,
+		(match, before, url, quote) => {
+			if (ABSOLUTE.test(url)) return match;
+			let target = url;
+			try { target = decodeURI(url); } catch {}
+			if (existsSync(path.join(dir, target))) return match;
+			return before + image + quote;
+		}
+	);
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. petites vérifications, pour aider les élèves                     */
 
 function lint(fragment, relPath, image, problems) {
 	const say = (msg) => problems.push(`${relPath}: ${msg}`);
@@ -191,7 +232,8 @@ for (const { file, image, ambiguous } of pairs) {
 	}
 	lint(fragment, relFile, image, problems);
 
-	cards.push(`\n<!-- ${relFile} -->\n${rewritePaths(fragment, relDir)}\n`);
+	const fixed = fixMissingSrc(fragment, path.dirname(file), image);
+	cards.push(`\n<!-- ${relFile} -->\n${rewritePaths(fixed, relDir)}\n`);
 }
 
 const template = await readFile(path.join(ROOT, 'index.html'), 'utf8');

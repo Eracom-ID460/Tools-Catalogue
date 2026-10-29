@@ -29,6 +29,12 @@ ID460_PrenomNom_TestPage_<outil>.snippet.html
 L'appariement se fait **par nom de fichier**, pas par contenu. Un fichier sans
 jumeau est listé au build puis ignoré — jamais une erreur.
 
+Une fiche en `.html` tout court est acceptée aussi : le Finder masque les
+extensions et les élèves perdent `.snippet` en renommant sans le voir. En cas
+de doublon, `.snippet.html` l'emporte. Si le `src` de la fiche vise un fichier
+inexistant (modèle pas rempli, faute de frappe), le build affiche le média
+apparié à la place et garde l'avertissement.
+
 Une fiche est un **document HTML complet** (`<body class="gallery">` + un lien
 vers `../../style.css`) pour s'ouvrir seule dans un navigateur ; le build n'en
 garde que le contenu du `<body>`. Ne pas la réduire à un fragment : la
