@@ -13,7 +13,7 @@ chacun·e n'ajoute que ses propres fichiers dans `tools/`. Avant de proposer un
 changement, vérifier qu'il ne réintroduit pas de fichier édité à plusieurs.
 
 Corollaire : **les élèves n'ont pas Node installé et n'en ont pas besoin.** La
-prévisualisation se fait en ouvrant une fiche `.snippet.html` dans le
+prévisualisation se fait en ouvrant une fiche `.html` dans le
 navigateur. Ne pas introduire d'étape de build côté élève.
 
 ## Modèle de données
@@ -23,15 +23,18 @@ Un dossier `tools/<outil>/` par outil, partagé par toute la classe. Un spécime
 
 ```
 ID460_PrenomNom_TestPage_<outil>.png
-ID460_PrenomNom_TestPage_<outil>.snippet.html
+ID460_PrenomNom_TestPage_<outil>.html
 ```
 
 L'appariement se fait **par nom de fichier**, pas par contenu. Un fichier sans
 jumeau est listé au build puis ignoré — jamais une erreur.
 
-Une fiche en `.html` tout court est acceptée aussi : le Finder masque les
-extensions et les élèves perdent `.snippet` en renommant sans le voir. En cas
-de doublon, `.snippet.html` l'emporte. Si le `src` de la fiche vise un fichier
+La convention est `.html`. L'ancienne, `.snippet.html`, reste acceptée pour
+les fiches déjà en place (ne pas les renommer : ce sont des fichiers d'élèves) ;
+en cas de doublon pour un même nom, `.snippet.html` l'emporte, car c'est en
+général la fiche remplie, l'autre étant une copie neuve du modèle. Toute
+fiche `.html` hors de `tools/` (comme `MODELE.html`) n'est jamais lue par le
+build. Si le `src` de la fiche vise un fichier
 inexistant (modèle pas rempli, faute de frappe), le build affiche le média
 apparié à la place et garde l'avertissement.
 

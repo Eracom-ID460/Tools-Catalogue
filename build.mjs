@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 /**
- * build.mjs — assemble index.html depuis les fiches tools/**\/*.snippet.html
- *              (ou *.html tout court, voir ficheStem)
+ * build.mjs — assemble index.html depuis les fiches tools/**\/*.html
  *
  * Un dossier tools/<outil>/ par outil, partagé par toute la classe.
  * Un spécimen = deux fichiers de MÊME NOM dans ce dossier :
  *     ID460_PrenomNom_TestPage_<outil>.png
- *     ID460_PrenomNom_TestPage_<outil>.snippet.html
+ *     ID460_PrenomNom_TestPage_<outil>.html
  * Une fiche sans image du même nom (ou l'inverse) est ignorée.
  *
  * Ce script collecte les spécimens et les injecte entre les marqueurs
@@ -34,15 +33,14 @@ const END = '<!-- /BUILD:GALLERY -->';
 /* 1. trouver toutes les fiches                                        */
 
 const MEDIA = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg', '.mp4', '.webm'];
-const SUFFIX = '.snippet.html';
+const SUFFIX = '.html';
+// ancienne convention, encore acceptée pour les fiches déjà en place
+const LEGACY = '.snippet.html';
 
-// Tolérance : le Finder masque les extensions et affiche la fiche comme
-// « …snippet » ; en la renommant, l'élève perd « .snippet » sans le voir.
-// Une fiche en .html tout court est donc acceptée aussi.
 function ficheStem(name) {
 	const lower = name.toLowerCase();
+	if (lower.endsWith(LEGACY)) return name.slice(0, -LEGACY.length);
 	if (lower.endsWith(SUFFIX)) return name.slice(0, -SUFFIX.length);
-	if (lower.endsWith('.html')) return name.slice(0, -'.html'.length);
 	return null;
 }
 
@@ -71,10 +69,11 @@ async function findSpecimens(dir) {
 	}
 	for (const names of media.values()) names.sort();
 
-	// les .snippet.html d'abord : en cas de doublon, ce sont eux qui gagnent
+	// Les .snippet.html d'abord : en cas de doublon, l'ancienne fiche (déjà
+	// remplie) l'emporte sur une copie du modèle ajoutée à côté.
 	const fiches = files
 		.filter((f) => ficheStem(f.name) !== null)
-		.sort((x, y) => Number(!x.name.endsWith(SUFFIX)) - Number(!y.name.endsWith(SUFFIX)));
+		.sort((x, y) => Number(!x.name.endsWith(LEGACY)) - Number(!y.name.endsWith(LEGACY)));
 	const paired = new Map();
 
 	for (const f of fiches) {
