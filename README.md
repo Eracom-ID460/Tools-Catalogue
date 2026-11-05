@@ -38,7 +38,11 @@ Pour plusieurs essais avec le même outil, numéroter la paire :
 ### Marche à suivre
 
 1. Trouver — ou créer — le dossier de l'outil : `tools/nom-de-loutil/`
-   (minuscules, sans espaces ni accents — p.ex. `tools/paint.stx.studio/`)
+   (minuscules, sans espaces ni accents — p.ex. `tools/paint.stx.studio/`).
+   **Jamais de `/` ni de `:`** dans un nom de dossier ou de fichier, même si
+   l'adresse de l'outil en contient : le Mac l'accepte, mais le dépôt ne
+   s'ouvre plus sur les PC de la classe. Remplacer par `_` ou `-` :
+   `tesseractcat.itch.io/itmas` → `tools/tesseractcat.itch.io_itmas/`.
 
 2. Y déposer la capture, nommée `ID460_PrenomNom_TestPage_nom-de-loutil.png`
 
@@ -189,7 +193,9 @@ publication :
 - pas de `<figure>`, pas de `class="specimen"`, pas d'`<img>` ni de `<video>` ;
 - une `<img>` sans attribut `alt` ;
 - plusieurs `<figure>` dans une même fiche (1 fiche = 1 spécimen) ;
-- un champ `.title`, `.link` ou `.creator` manquant ou vide.
+- un champ `.title`, `.link` ou `.creator` manquant ou vide ;
+- un nom de dossier ou de fichier refusé par Windows (`/`, `:`, `*`, `?`,
+  `"`, `<`, `>`, `|`, ou un espace / un point à la fin).
 
 Le build ne s'arrête qu'à une seule condition : les marqueurs `BUILD:GALLERY`
 absents de `index.html`.
