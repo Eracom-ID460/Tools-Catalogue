@@ -214,11 +214,26 @@ async function pruneDotfiles(dir) {
 	}
 }
 
+/* Noms refusés par Windows. Sur Mac, un « / » tapé dans le Finder est
+ * enregistré « : » sur le disque : le dépôt ne s'ouvre plus sur PC. */
+const WINDOWS_BAD = /[<>:"\\|?*\x00-\x1f]|[ .]$/;
+async function findBadNames(dir, problems) {
+	for (const entry of await readdir(dir, { withFileTypes: true })) {
+		if (entry.name.startsWith('.')) continue;
+		const full = path.join(dir, entry.name);
+		if (WINDOWS_BAD.test(entry.name)) {
+			problems.push(`${path.relative(ROOT, full)}: nom invalide sur Windows (pas de / : * ? " < > | ni d'espace ou de point final) — à renommer`);
+		}
+		if (entry.isDirectory()) await findBadNames(full, problems);
+	}
+}
+
 const { pairs, orphans } = await findSpecimens(path.join(ROOT, 'tools'));
 pairs.sort((a, b) => a.file.localeCompare(b.file));
 
 const problems = [];
 const cards = [];
+await findBadNames(path.join(ROOT, 'tools'), problems);
 
 for (const { file, image, ambiguous } of pairs) {
 	const relFile = path.relative(ROOT, file).split(path.sep).join('/');
